@@ -1,3 +1,6 @@
+import tkinter as tk
+from tkinter import ttk
+
 class Node:
     def __init__(self, name):
         self.name = name
@@ -65,16 +68,42 @@ class Network:
                     if node.receive_routing_info(neighbor_name, neighbor_table):
                         updates = True
 
-    def print_routing_tables(self):
-        """Stampa le tabelle di routing finali per ogni nodo."""
+    def get_routing_tables(self):
+        """Restituisce le tabelle di routing per tutti i nodi."""
+        routing_tables = {}
         for node in self.nodes.values():
-            print(f"TABELLA DI ROUTING DEL NODO {node.name}:")
-            print(f"{'DESTINAZIONE':<15}{'COSTO':<10}{'Next Hop'}")  # Header
-            for dest in sorted(node.routing_table):
-                cost = node.routing_table[dest]
-                next_hop = node.next_hop[dest]
-                print(f"{dest:<15}{cost:<10}{next_hop}")  # Formattazione tabellare
-            print()
+            routing_tables[node.name] = {
+                "destination": {dest: cost for dest, cost in node.routing_table.items()},
+                "next_hop": {dest: node.next_hop[dest] for dest in node.routing_table}
+            }
+        return routing_tables
+
+    def show_routing_tables_gui(self):
+        """Mostra una GUI con le tabelle di routing."""
+        root = tk.Tk()
+        root.title("Tabelle di Routing")
+
+        # Crea un notebook per i tab
+        notebook = ttk.Notebook(root)
+
+        for node_name, table in self.get_routing_tables().items():
+            frame = ttk.Frame(notebook)
+            notebook.add(frame, text=f"Nodo {node_name}")
+
+            tree = ttk.Treeview(frame, columns=("Destinazione", "Costo", "Next Hop"), show="headings")
+            tree.heading("Destinazione", text="Destinazione")
+            tree.heading("Costo", text="Costo")
+            tree.heading("Next Hop", text="Next Hop")
+
+            # Inserisce i dati nella tabella
+            for dest, cost in table["destination"].items():
+                next_hop = table["next_hop"][dest]
+                tree.insert("", "end", values=(dest, cost, next_hop))
+
+            tree.pack(expand=True, fill="both")
+
+        notebook.pack(expand=True, fill="both")
+        root.mainloop()
 
 
 # Creazione della rete
@@ -85,14 +114,14 @@ for node_name in ["A", "B", "C", "D"]:
     network.add_node(node_name)
 
 # Definizione dei collegamenti (link) con relativi costi
-network.add_link("A", "B", 1)
-network.add_link("A", "C", 4)
-network.add_link("B", "C", 2)
-network.add_link("B", "D", 7)
-network.add_link("C", "D", 3)
+network.add_link("A", "B", 2)
+network.add_link("A", "C", 3)
+network.add_link("B", "C", 1)
+network.add_link("B", "D", 6)
+network.add_link("C", "D", 5)
 
 # Aggiornamento delle tabelle di routing
 network.update_routing_tables()
 
-# Stampa finale delle tabelle di routing
-network.print_routing_tables()
+# Mostra la GUI
+network.show_routing_tables_gui()
