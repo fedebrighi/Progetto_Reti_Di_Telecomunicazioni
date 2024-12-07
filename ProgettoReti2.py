@@ -78,6 +78,17 @@ class Network:
             }
         return routing_tables
 
+    def print_routing_tables(self):
+        """Stampa le tabelle di routing finali per ogni nodo."""
+        for node in self.nodes.values():
+            print(f"TABELLA DI ROUTING DEL NODO {node.name}:")
+            print(f"{'DESTINAZIONE':<15}{'COSTO':<10}{'Next Hop'}")  # Header
+            for dest in sorted(node.routing_table):
+                cost = node.routing_table[dest]
+                next_hop = node.next_hop[dest]
+                print(f"{dest:<15}{cost:<10}{next_hop}")  # Formattazione tabellare
+            print()
+
     def show_routing_tables_gui(self):
         """Mostra una GUI con le tabelle di routing."""
         root = tk.Tk()
@@ -86,7 +97,8 @@ class Network:
         # Crea un notebook per i tab
         notebook = ttk.Notebook(root)
 
-        for node_name, table in self.get_routing_tables().items():
+        # Ordina i nomi dei nodi in ordine alfabetico
+        for node_name, table in sorted(self.get_routing_tables().items()):
             frame = ttk.Frame(notebook)
             notebook.add(frame, text=f"Nodo {node_name}")
 
@@ -95,8 +107,8 @@ class Network:
             tree.heading("Costo", text="Costo")
             tree.heading("Next Hop", text="Next Hop")
 
-            # Inserisce i dati nella tabella
-            for dest, cost in table["destination"].items():
+            # Ordina le destinazioni in ordine alfabetico
+            for dest, cost in sorted(table["destination"].items()):
                 next_hop = table["next_hop"][dest]
                 tree.insert("", "end", values=(dest, cost, next_hop))
 
@@ -104,7 +116,6 @@ class Network:
 
         notebook.pack(expand=True, fill="both")
         root.mainloop()
-
 
 # Creazione della rete
 network = Network()
@@ -122,6 +133,9 @@ network.add_link("C", "D", 5)
 
 # Aggiornamento delle tabelle di routing
 network.update_routing_tables()
+
+# Stampa finale delle tabelle di routing
+network.print_routing_tables()
 
 # Mostra la GUI
 network.show_routing_tables_gui()
